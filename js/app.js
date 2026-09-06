@@ -445,10 +445,12 @@ const App = (() => {
   // ---------- risk ----------
   function renderRiskChrome(force) {
     const legend = document.getElementById('riskLegend');
-    legend.innerHTML = ['critical', 'high', 'moderate', 'low'].map(c => {
-      const rc = RISK_CAT[c];
-      return `<span class="lg-row"><span class="sw" style="background:${rc.color}"></span>${T(rc.label)}</span>`;
-    }).join('');
+    if (legend) {
+      legend.innerHTML = ['critical', 'high', 'moderate', 'low'].map(c => {
+        const rc = RISK_CAT[c];
+        return `<span class="lg-row" style="display:flex;align-items:center;gap:6px"><span class="sw" style="background:${rc.color};width:13px;height:13px;border-radius:4px;display:inline-block"></span><span style="font-size:0.74rem;color:var(--text-soft)">${T(rc.label)}</span></span>`;
+      }).join('');
+    }
     // national score
     const scores = Object.entries(DATA.stateRisk).filter(([k]) => !k.startsWith('_')).map(([, v]) => v.score);
     const nat = Math.round(scores.reduce((a, b) => a + b, 0) / scores.length);
@@ -681,15 +683,52 @@ const App = (() => {
       localStorage.setItem('tw_data_mode', mode);
       localStorage.setItem('tw_firms_key', key || '');
     } catch (_) { /* storage unavailable */ }
+
+    // Show a loading overlay while switching — prevents UI interaction and
+    // hides the stale data-badge state during the transition window.
+    const loader = document.getElementById('loader');
+    if (loader) {
+      loader.classList.remove('done');
+      const sub = loader.querySelector('.loader-sub');
+      if (sub) sub.textContent = mode === 'live'
+        ? '🔄 Switching to LIVE — connecting to NASA FIRMS…'
+        : '🔄 Switching to DEMO — loading archive…';
+    }
+
+    const badge = document.getElementById('dataBadge');
     const badgeText = document.getElementById('dataBadgeText');
+    if (badge) badge.style.pointerEvents = 'none';
     if (badgeText) badgeText.textContent = 'SYNCING…';
-    document.getElementById('dataBadge').classList.add('demo');
+    if (badge) badge.classList.add('demo');
     const dot = document.getElementById('dataBadgeDot');
     if (dot) dot.className = 'live-dot amber';
+
     toast(mode === 'live'
       ? 'Switching to live mode — syncing NASA FIRMS feed…'
       : 'Switching to demo mode — loading bundled CSV archive…', 'warn', '🛰️ Data Source');
-    return initData().then(() => { onDataReady(); });
+
+    // Timeout: if initData takes >30s something is wrong (bad key, network, 502).
+    const switched = initData();
+    const timeout = setTimeout(() => {
+      if (loader && !loader.classList.contains('done')) {
+        const sub = loader.querySelector('.loader-sub');
+        if (sub) sub.textContent = '⚠ Data source timed out — showing cached sample data';
+        toast('Data source switch timed out — using cached sample data', 'warn', '🛰️ Data Source');
+      }
+    }, 30000);
+    return switched.then(meta => {
+      clearTimeout(timeout);
+      onDataReady(meta);
+    }).catch(err => {
+      clearTimeout(timeout);
+      // Keep the seeded sample active; show a warning that the switch failed.
+      if (loader) {
+        const sub = loader.querySelector('.loader-sub');
+        if (sub) sub.textContent = '⚠ Switch failed — using bundled sample data';
+      }
+      toast('Data source switch failed — using bundled sample data', 'warn', '🛰️ Data Source');
+      onDataReady();
+    });
   }
 
   // Called after the data source (demo/live) finishes syncing: swap the
@@ -697,6 +736,16 @@ const App = (() => {
   function onDataReady(meta) {
     meta = meta || DATA_META;
     renderDataBadge();
+    // Restore pointer-events on the data badge after sync completes.
+    const badge = document.getElementById('dataBadge');
+    if (badge) badge.style.pointerEvents = '';
+    // Hide the loader if it's still showing.
+    const loader = document.getElementById('loader');
+    if (loader) {
+      loader.classList.add('done');
+      const sub = loader.querySelector('.loader-sub');
+      if (sub) sub.textContent = '🛰️ Syncing data source…';
+    }
     renderHeroStats();
     renderStrip();
     refreshDashboard();

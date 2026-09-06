@@ -819,6 +819,19 @@ html[data-theme="dark"] select option {
   .kpi-grid { grid-template-columns: repeat(2, 1fr); }
   .map-wrap { min-height: 440px; }
 }
+@media (max-width: 768px) {
+  .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+  .hero-stats { grid-template-columns: repeat(3, 1fr); }
+  .an-grid { grid-template-columns: repeat(2, 1fr); }
+  .dt-cards { grid-template-columns: repeat(2, 1fr); }
+  .nav-links a { font-size: 0.82rem; padding: 10px 11px; }
+  .map-toolbar { gap: 8px; }
+  .tb-left h2 { font-size: 1.15rem; }
+  .map-legend { font-size: 0.68rem; padding: 8px 10px; }
+  .map-legend .lg-row { gap: 5px; }
+  .data-badge { font-size: 0.62rem; padding: 5px 9px; }
+  #dataBadgeText { max-width: 90px; }
+}
 @media (max-width: 720px) {
   .seg { flex-wrap: wrap; max-width: 100%; }
   .seg-btn { padding: 6px 9px; font-size: 0.7rem; }
