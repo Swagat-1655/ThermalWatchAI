@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ThermalWatch AI — Industrial Fire Intelligence Platform</title>
+<meta name="description" content="AI-powered detection, classification, prediction and monitoring of industrial fires and persistent thermal sources using satellite intelligence.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='1' x2='1' y2='0'%3E%3Cstop offset='0' stop-color='%23f97316'/%3E%3Cstop offset='1' stop-color='%2322d3ee'/%3E%3C/linearGradient%3E%3C/defs%3E%3Cpath d='M32 4 L56 18 L56 46 L32 60 L8 46 L8 18 Z' fill='none' stroke='url(%23g)' stroke-width='5'/%3E%3Cpath d='M32 18 c-8 10 -12 16 -12 23 a12 12 0 0 0 24 0 c0 -7 -4 -13 -12 -23 z' fill='url(%23g)'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+<!-- ============ LOADER ============ -->
+<div id="loader">
+  <div class="loader-ring"></div>
+  <div class="loader-brand">🔥 <span>ThermalWatch AI</span></div>
+  <div class="loader-sub" data-i18n="loader_sub">Initialising satellite intelligence…</div>
+</div>
+
+<!-- ============ NAVBAR ============ -->
+<header id="navbar">
+  <div class="nav-inner">
+    <a class="brand" href="#home" data-nav="home">
+      <span class="brand-icon"><svg viewBox="0 0 64 64" width="30" height="30"><defs><linearGradient id="lg1" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#f97316"/><stop offset="1" stop-color="#22d3ee"/></linearGradient></defs><path d="M32 6 L54 19 L54 45 L32 58 L10 45 L10 19 Z" fill="none" stroke="url(#lg1)" stroke-width="4"/><path d="M32 20 c-7 9 -11 14 -11 20 a11 11 0 0 0 22 0 c0 -6 -4 -11 -11 -20 z" fill="url(#lg1)"/></svg></span>
+      <span class="brand-text">ThermalWatch <em>AI</em></span>
+    </a>
+    <nav class="nav-links" id="navLinks">
+      <a href="#dashboard" data-nav="dashboard" data-i18n="nav_dashboard">Dashboard</a>
+      <a href="#map" data-nav="map" data-i18n="nav_hotspots">Live Hotspots</a>
+      <a href="#risk" data-nav="risk" data-i18n="nav_risk">Risk Map</a>
+      <a href="#analytics" data-nav="analytics" data-i18n="nav_analytics">Analytics</a>
+      <a href="#assistant" data-nav="assistant" data-i18n="nav_assistant">AI Assistant</a>
+      <a href="#alerts" data-nav="alerts" data-i18n="nav_alerts">Alerts</a>
+      <a href="#reports" data-nav="reports" data-i18n="nav_reports">Reports</a>
+      <a href="#data" data-nav="data" data-i18n="nav_data">Dataset</a>
+    </nav>
+    <div class="nav-actions">
+      <button class="data-badge" id="dataBadge" title="Data source — click for details">
+        <span class="live-dot" id="dataBadgeDot"></span><span id="dataBadgeText">CONNECTING</span>
+      </button>
+      <div class="lang-switch" id="langSwitch" title="Language / भाषा">
+        <button class="lang-btn active" data-lang="en">EN</button>
+        <button class="lang-btn" data-lang="hi">हिं</button>
+      </div>
+      <button class="icon-btn" id="themeToggle" title="Toggle theme" aria-label="Toggle theme">
+        <svg class="icon-sun" viewBox="0 0 24 24" width="19" height="19"><circle cx="12" cy="12" r="4.4" fill="none" stroke="currentColor" stroke-width="1.8"/><path stroke="currentColor" stroke-width="1.8" stroke-linecap="round" d="M12 2.5v2.6M12 18.9v2.6M2.5 12h2.6M18.9 12h2.6M5 5l1.9 1.9M17.1 17.1 19 19M19 5l-1.9 1.9M6.9 17.1 5 19"/></svg>
+        <svg class="icon-moon" viewBox="0 0 24 24" width="19" height="19"><path fill="currentColor" d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"/></svg>
+      </button>
+      <div class="profile" id="profileBtn" title="Command Centre">
+        <div class="profile-avatar">OP</div>
+        <span class="profile-name" data-i18n="profile_name">Op Centre</span>
+      </div>
+      <button class="hamburger" id="hamburger" aria-label="Menu"><span></span><span></span><span></span></button>
+    </div>
+  </div>
+</header>
+
+<main id="app">
+
+<!-- ============ LANDING ============ -->
+<section class="view active" id="view-home">
+  <div class="hero">
+    <canvas id="heroScene"></canvas>
+    <div class="hero-grid-overlay"></div>
+    <div class="hero-inner">
+      <div class="hero-copy">
+        <div class="hero-badge">
+          <span class="pulse-dot"></span>
+          <span data-i18n="hero_badge">National Satellite Intelligence Grid • Team NEON NEXUS</span>
+        </div>
+        <h1 class="hero-title"><span data-i18n="hero_title_1">ThermalWatch</span> <span class="grad">AI</span></h1>
+        <p class="hero-sub" data-i18n="hero_sub">AI-Powered Detection, Classification, Prediction &amp; Monitoring of Industrial Fires and Persistent Thermal Sources using Satellite Intelligence.</p>
+        <div class="hero-actions">
+          <a href="#dashboard" class="btn btn-primary" data-nav="dashboard"><span data-i18n="hero_btn_dash">Explore Dashboard</span> →</a>
+          <a href="#map" class="btn btn-ghost" data-nav="map"><span class="live-dot"></span><span data-i18n="hero_btn_live">Live Monitoring</span></a>
+          <a href="#risk" class="btn btn-ghost" data-nav="risk" data-i18n="hero_btn_risk">View Risk Map</a>
+        </div>
+        <div class="hero-meta">
+          <div class="meta-chip"><span class="meta-dot ok"></span><span data-i18n="hero_meta_sat">MODIS • VIIRS Linked</span></div>
+          <div class="meta-chip"><span class="meta-dot ok"></span><span data-i18n="hero_meta_ai">AI Models Online</span></div>
+          <div class="meta-chip"><span class="meta-dot warn"></span><span data-i18n="hero_meta_gis">GIS Core Active</span></div>
+        </div>
+      </div>
+      <div class="hero-scene-wrap">
+        <div class="hero-scene-caption">
+          <span class="live-dot"></span><span data-i18n="hero_scene_caption">LIVE — Global Thermal Surveillance</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="hero-stats" id="heroStats"></div>
+  <div class="hero-strip">
+    <div class="strip-track" id="stripTrack"></div>
+  </div>
+</section>
+
+<!-- ============ DASHBOARD ============ -->
+<section class="view" id="view-dashboard">
+  <div class="view-head">
+    <div>
+      <h2 data-i18n="dash_title">Mission Overview</h2>
+      <p class="view-sub" data-i18n="dash_sub">National industrial thermal intelligence — real-time situational awareness</p>
+    </div>
+    <div class="head-right">
+      <div class="live-badge"><span class="live-dot"></span><span data-i18n="live_badge">LIVE FEED</span></div>
+      <div class="clock" id="clock">--:--:--</div>
+    </div>
+  </div>
+  <div class="kpi-grid" id="kpiGrid"></div>
+  <div class="dash-grid">
+    <div class="card span-2">
+      <div class="card-head"><h3 data-i18n="dash_activity_title">Live Detection Feed</h3><span class="chip chip-cyan" id="feedCount">0</span></div>
+      <div class="activity-feed" id="activityFeed"></div>
+    </div>
+    <div class="card">
+      <div class="card-head"><h3 data-i18n="dash_risk_title">National Risk Index</h3><span class="chip chip-red" data-i18n="dash_risk_crit">CRITICAL</span></div>
+      <div class="gauge-wrap"><canvas id="gaugeRisk"></canvas><div class="gauge-center"><b id="gaugeRiskVal">89</b><span>%</span></div></div>
+      <div class="gauge-label" data-i18n="dash_risk_label">Aggregate risk across 28 industrial clusters</div>
+    </div>
+    <div class="card">
+      <div class="card-head"><h3 data-i18n="dash_zones_title">Most Active Zones</h3><span class="chip chip-orange" data-i18n="dash_zones_chip">TOP 5</span></div>
+      <div class="zone-list" id="zoneList"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ LIVE MAP ============ -->
+<section class="view" id="view-map">
+  <div class="map-toolbar">
+    <div class="tb-left">
+      <h2 data-i18n="map_title">Live Thermal GIS</h2>
+      <span class="live-badge"><span class="live-dot"></span><span data-i18n="map_live">STREAMING</span></span>
+    </div>
+    <div class="tb-right">
+      <div class="seg" id="baseSeg">
+        <button class="seg-btn active" data-base="sat" data-i18n="map_base_sat">Satellite</button>
+        <button class="seg-btn" data-base="osm" data-i18n="map_base_street">Street</button>
+        <button class="seg-btn" data-base="terrain" data-i18n="map_base_terrain">Terrain</button>
+      </div>
+      <div class="seg" id="layerSeg">
+        <button class="seg-btn" data-layer="thermal" data-i18n="map_layer_thermal">Thermal</button>
+        <button class="seg-btn" data-layer="risk" data-i18n="map_layer_risk">Risk</button>
+      </div>
+      <select id="typeFilter" class="mini-select" title="Filter hotspot type">
+        <option value="all" data-i18n="map_filter_all">All Types</option>
+      </select>
+      <div class="sim-ctl">
+        <select id="simSelect" class="mini-select" title="Choose a hotspot to simulate" aria-label="Hotspot for spread simulation"></select>
+        <button class="tool-btn" id="simulateBtn" title="Run spread simulation" data-i18n="map_sim">⚡ Simulate</button>
+      </div>
+    </div>
+  </div>
+  <div class="map-wrap">
+    <div id="liveMap"></div>
+    <div class="map-legend glass" id="mapLegend"></div>
+    <div class="map-coords glass" id="mapCoords">—</div>
+    <div class="map-tools glass">
+      <button class="tool-btn" id="zoomIn" title="Zoom in">+</button>
+      <button class="tool-btn" id="zoomOut" title="Zoom out">−</button>
+      <button class="tool-btn" id="recenter" title="Recentre on India">◎</button>
+      <button class="tool-btn" id="locateMe" title="Zoom to my location">⌖</button>
+    </div>
+    <div id="spotDrawer" class="spot-drawer glass">
+      <div class="drawer-head">
+        <div class="drawer-title">
+          <span class="pin-sm" id="dPin"></span>
+          <div><b id="dId">THW-IND-0000</b><span id="dSub" class="muted">—</span></div>
+        </div>
+        <button class="drawer-close" id="drawerClose">✕</button>
+      </div>
+      <div class="drawer-tabs" id="drawerTabs">
+        <button class="tab active" data-tab="details" data-i18n="tab_details">Details</button>
+        <button class="tab" data-tab="ai" data-i18n="tab_ai">AI Analysis</button>
+        <button class="tab" data-tab="timeline" data-i18n="tab_timeline">Timeline</button>
+        <button class="tab" data-tab="print" data-i18n="tab_fingerprint">Fingerprint</button>
+        <button class="tab" data-tab="news" data-i18n="tab_news">News</button>
+      </div>
+      <div class="drawer-body" id="drawerBody"></div>
+      <div class="drawer-foot">
+        <button class="btn btn-primary btn-sm" id="drawerReport" data-i18n="drawer_report">Generate Incident Report</button>
+        <button class="btn btn-ghost btn-sm" id="drawerPdf" data-i18n="drawer_pdf">PDF</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ RISK MAP ============ -->
+<section class="view" id="view-risk">
+  <div class="view-head">
+    <div>
+      <h2 data-i18n="risk_title">National Fire Risk Map</h2>
+      <p class="view-sub" data-i18n="risk_sub">State-wise risk intelligence — click a state to drill into districts</p>
+    </div>
+    <div class="risk-legend" id="riskLegend"></div>
+  </div>
+  <div class="risk-layout">
+    <div class="card risk-map-card">
+      <div id="riskMap"></div>
+      <div class="map-tools glass" id="riskMapTools">
+        <button class="tool-btn" id="riskZoomIn" title="Zoom in">+</button>
+        <button class="tool-btn" id="riskZoomOut" title="Zoom out">−</button>
+        <button class="tool-btn" id="riskRecenter" title="Recentre on India">◎</button>
+      </div>
+    </div>
+    <div class="risk-side">
+      <div class="card risk-gauge-card">
+        <div class="card-head"><h3 data-i18n="risk_gauge_title">National Risk Score</h3></div>
+        <div class="gauge-wrap sm"><canvas id="gaugeNational"></canvas><div class="gauge-center"><b id="gaugeNationalVal">—</b><span>%</span></div></div>
+        <div class="gauge-label" id="riskGaugeLabel">—</div>
+      </div>
+      <div class="card risk-state-card" id="riskStateCard">
+        <div class="card-head"><h3 data-i18n="risk_state_title">State Intelligence</h3></div>
+        <div class="risk-state-placeholder" id="riskStatePlaceholder" data-i18n="risk_state_hint">Select a state on the map to view district-level hotspots, incidents and alerts.</div>
+        <div id="riskStateContent" class="hidden"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ ANALYTICS ============ -->
+<section class="view" id="view-analytics">
+  <div class="view-head">
+    <div>
+      <h2 data-i18n="an_title">Historical Analytics</h2>
+      <p class="view-sub" data-i18n="an_sub">12-month intelligence derived from NASA FIRMS (MODIS + VIIRS) thermal anomaly records</p>
+    </div>
+    <div class="head-right">
+      <div class="seg" id="anPeriod">
+        <button class="seg-btn active" data-period="12m" data-i18n="an_12m">12 Months</button>
+        <button class="seg-btn" data-period="3m" data-i18n="an_3m">3 Months</button>
+      </div>
+    </div>
+  </div>
+  <div class="an-grid">
+    <div class="card"><div class="card-head"><h3 data-i18n="an_month_title">Hotspots by Month</h3></div><canvas id="chMonth" height="220"></canvas></div>
+    <div class="card"><div class="card-head"><h3 data-i18n="an_state_title">Hotspots by State</h3></div><canvas id="chState" height="220"></canvas></div>
+    <div class="card"><div class="card-head"><h3 data-i18n="an_industry_title">Industrial Fires by Industry</h3></div><canvas id="chIndustry" height="220"></canvas></div>
+    <div class="card"><div class="card-head"><h3 data-i18n="an_flare_title">Gas Flares by Region</h3></div><canvas id="chFlare" height="220"></canvas></div>
+    <div class="card"><div class="card-head"><h3 data-i18n="an_zones_title">Most Active Industrial Zones</h3></div><canvas id="chZones" height="220"></canvas></div>
+    <div class="card heat-card"><div class="card-head"><h3 data-i18n="an_heat_title">Thermal Heatmap of India</h3><span class="chip chip-cyan" data-i18n="an_heat_chip">VIIRS 375m</span></div><div id="heatMap" class="mini-map"></div></div>
+  </div>
+  <div class="data-note" data-i18n="an_note">Data schema: latitude, longitude, brightness, scan, track, acq_date, acq_time, satellite, instrument, confidence, bright_t31, frp, daynight, type — sample records modelled on NASA FIRMS FIRMS-MODIS/VIIRS products.</div>
+</section>
+
+<!-- ============ ASSISTANT ============ -->
+<section class="view" id="view-assistant">
+  <div class="view-head">
+    <div>
+      <h2 data-i18n="as_title">Geospatial RAG Assistant</h2>
+      <p class="view-sub" data-i18n="as_sub">LLM + PostGIS + RAG over the national thermal intelligence graph</p>
+    </div>
+    <div class="head-right">
+      <div class="live-badge" id="llmStatus"><span class="live-dot"></span><span data-i18n="as_online">LLM ONLINE</span></div>
+    </div>
+  </div>
+  <div class="chat-layout">
+    <div class="card chat-card">
+      <div class="chat-head">
+        <div class="chat-avatar">🤖</div>
+        <div>
+          <b data-i18n="as_agent">Therma — Geospatial AI Agent</b>
+          <span class="muted" data-i18n="as_agent_sub">Trained on FIRMS records, industry registry, hazard DB</span>
+        </div>
+      </div>
+      <div class="chat-messages" id="chatMessages"></div>
+      <div class="chat-chips" id="chatChips"></div>
+      <div class="chat-input">
+        <input id="chatInput" type="text" placeholder="Ask about hotspots, refineries, flares, districts…" data-i18n-ph="as_ph">
+        <button class="btn btn-primary" id="chatSend" data-i18n="as_send">Ask</button>
+      </div>
+    </div>
+    <div class="card chat-side">
+      <div class="card-head"><h3 data-i18n="as_cap_title">Capabilities</h3></div>
+      <ul class="cap-list">
+        <li><span>🗺️</span><span data-i18n="as_cap1">Maps — query hotspots spatially &amp; temporally</span></li>
+        <li><span>📊</span><span data-i18n="as_cap2">Charts — aggregate by state, industry, month</span></li>
+        <li><span>🏭</span><span data-i18n="as_cap3">Industry twin — thermal anomalies per plant</span></li>
+        <li><span>🚨</span><span data-i18n="as_cap4">Risk — highest risk districts &amp; recommendations</span></li>
+      </ul>
+      <div class="card-head mt"><h3 data-i18n="as_try_title">Try Asking</h3></div>
+      <div class="try-list" id="tryList"></div>
+      <div class="pipeline">
+        <div class="card-head"><h3 data-i18n="as_pipe_title">Pipeline</h3></div>
+        <div class="pipe-step ok"><span>1</span><b>Query parsing (NER)</b></div>
+        <div class="pipe-step ok"><span>2</span><b>PostGIS spatial filter</b></div>
+        <div class="pipe-step ok"><span>3</span><b>RAG retrieval</b></div>
+        <div class="pipe-step ok"><span>4</span><b>LLM synthesis — gpt-oss-20b</b></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ ALERTS ============ -->
+<section class="view" id="view-alerts">
+  <div class="view-head">
+    <div>
+      <h2 data-i18n="al_title">Smart AI Alerts Centre</h2>
+      <p class="view-sub" data-i18n="al_sub">Real-time alerting across detection, anomaly, explosion &amp; spread risk</p>
+    </div>
+    <div class="head-right">
+      <div class="channel-toggles" id="channelToggles">
+        <button class="ch-btn on" data-ch="dashboard">🖥️ <span data-i18n="al_ch_dash">Dashboard</span></button>
+        <button class="ch-btn on" data-ch="email">📧 <span data-i18n="al_ch_email">Email</span></button>
+        <button class="ch-btn on" data-ch="sms">📱 <span data-i18n="al_ch_sms">SMS</span></button>
+      </div>
+    </div>
+  </div>
+  <div class="alerts-toolbar">
+    <div class="alerts-count"><b id="alertsOpen">0</b> <span data-i18n="al_open">open alerts</span> • <b id="alertsTotal">0</b> <span data-i18n="al_total">total today</span></div>
+    <div class="seg" id="alertFilter">
+      <button class="seg-btn active" data-af="all" data-i18n="al_f_all">All</button>
+      <button class="seg-btn" data-af="new" data-i18n="al_f_new">New Fire</button>
+      <button class="seg-btn" data-af="anomaly" data-i18n="al_f_anomaly">Anomaly</button>
+      <button class="seg-btn" data-af="explosion" data-i18n="al_f_explosion">Explosion</button>
+      <button class="seg-btn" data-af="spread" data-i18n="al_f_spread">Spread</button>
+      <button class="seg-btn" data-af="env" data-i18n="al_f_env">Environment</button>
+    </div>
+  </div>
+  <div class="alert-list" id="alertList"></div>
+</section>
+
+<!-- ============ REPORTS ============ -->
+<section class="view" id="view-reports">
+  <div class="view-head">
+    <div>
+      <h2 data-i18n="rp_title">AI Incident Report Generator</h2>
+      <p class="view-sub" data-i18n="rp_sub">One-click PDF / DOCX intelligence dossiers</p>
+    </div>
+  </div>
+  <div class="report-layout">
+    <div class="card report-form">
+      <div class="card-head"><h3 data-i18n="rp_form_title">Report Configuration</h3></div>
+      <label class="f-label" data-i18n="rp_hotspot">Hotspot</label>
+      <select id="rpHotspot" class="f-input"></select>
+      <label class="f-label" data-i18n="rp_title_lab">Report Title</label>
+      <input id="rpTitle" class="f-input" type="text" value="ThermalWatch AI — Incident Intelligence Report">
+      <label class="f-label" data-i18n="rp_include">Sections</label>
+      <div class="rp-checks">
+        <label><input type="checkbox" checked data-sec="loc"><span data-i18n="rp_sec_loc">Location &amp; Detection</span></label>
+        <label><input type="checkbox" checked data-sec="class"><span data-i18n="rp_sec_class">AI Classification</span></label>
+        <label><input type="checkbox" checked data-sec="risk"><span data-i18n="rp_sec_risk">Risk &amp; Prediction</span></label>
+        <label><input type="checkbox" checked data-sec="hist"><span data-i18n="rp_sec_hist">Historical Activity</span></label>
+        <label><input type="checkbox" checked data-sec="rec"><span data-i18n="rp_sec_rec">Recommendations</span></label>
+      </div>
+      <div class="rp-actions">
+        <button class="btn btn-primary" id="rpPdf" data-i18n="rp_pdf">⬇ Download PDF Report</button>
+        <button class="btn btn-ghost" id="rpDocx" data-i18n="rp_docx">⬇ Download DOCX Report</button>
+      </div>
+      <div class="rp-status" id="rpStatus"></div>
+    </div>
+    <div class="card report-preview">
+      <div class="card-head"><h3 data-i18n="rp_preview">Live Preview</h3></div>
+      <div class="rp-doc" id="rpPreview"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ DATASET ============ -->
+<section class="view" id="view-data">
+  <div class="view-head">
+    <div>
+      <h2 data-i18n="dt_title">NASA FIRMS Dataset Explorer</h2>
+      <p class="view-sub" data-i18n="dt_sub">MODIS / VIIRS thermal anomaly records — search, filter, sort, export</p>
+    </div>
+    <div class="head-right">
+      <button class="btn btn-ghost" id="dtCsv" data-i18n="dt_csv">⬇ Export CSV</button>
+    </div>
+  </div>
+  <div class="dt-cards" id="dtCards"></div>
+  <div class="card dt-card">
+    <div class="dt-controls">
+      <input id="dtSearch" class="f-input" type="text" placeholder="Search ID, location, state…" data-i18n-ph="dt_search">
+      <select id="dtType" class="mini-select"><option value="all" data-i18n="dt_t_all">All types</option></select>
+      <select id="dtSat" class="mini-select"><option value="all" data-i18n="dt_s_all">All satellites</option></select>
+      <select id="dtState" class="mini-select"><option value="all" data-i18n="dt_st_all">All states</option></select>
+      <button class="btn btn-ghost btn-sm" id="dtReset" data-i18n="dt_reset">Reset</button>
+    </div>
+    <div class="table-wrap">
+      <table class="dt-table" id="dtTable">
+        <thead><tr id="dtHead"></tr></thead>
+        <tbody id="dtBody"></tbody>
+      </table>
+    </div>
+    <div class="dt-foot">
+      <span id="dtCount">0 records</span>
+      <div class="pager">
+        <button class="page-btn" id="dtPrev">‹</button>
+        <span id="dtPage">1 / 1</span>
+        <button class="page-btn" id="dtNext">›</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<!-- ============ FOOTER ============ -->
+<footer id="footer">
+  <div class="foot-grid">
+    <div class="foot-brand">
+      <div class="brand"><span class="brand-icon">🔥</span><span class="brand-text">ThermalWatch <em>AI</em></span></div>
+      <p data-i18n="foot_tag">AI-Powered Industrial Thermal Intelligence Platform</p>
+      <p class="foot-credit" data-i18n="foot_credits">Built by Team NEON NEXUS 🇮🇳</p>
+    </div>
+    <div class="foot-col">
+      <h4 data-i18n="foot_stack">Built With</h4>
+      <div class="foot-chips">
+        <span>NASA FIRMS</span><span>OpenStreetMap</span><span>Sentinel-2</span><span>PostGIS</span><span>FastAPI</span><span>XGBoost</span><span>Vision Transformers</span><span>Leaflet</span><span>GeoServer</span>
+      </div>
+    </div>
+    <div class="foot-col">
+      <h4 data-i18n="foot_links">Links</h4>
+      <a href="#" data-i18n="foot_github">GitHub Repository</a>
+      <a href="#" data-i18n="foot_docs">Documentation</a>
+      <a href="#" data-i18n="foot_team">Team Members</a>
+      <a href="#" data-i18n="foot_contact">Contact</a>
+    </div>
+  </div>
+  <div class="foot-bottom">
+    <span>© 2026 ThermalWatch AI • Team NEON NEXUS</span>
+    <span>🇮🇳 <span data-i18n="foot_made">Made for Bharat</span></span>
+  </div>
+</footer>
+
+<!-- ============ DATA SOURCE MODAL ============ -->
+<div id="dsModal" class="modal-overlay hidden">
+  <div class="modal glass">
+    <div class="modal-head">
+      <h3 data-i18n="ds_title">Data Source</h3>
+      <button class="drawer-close" id="dsClose" aria-label="Close">✕</button>
+    </div>
+    <label class="ds-opt">
+      <input type="radio" name="dsMode" value="demo">
+      <b data-i18n="ds_demo">Demo Mode</b>
+      <span data-i18n="ds_demo_desc">Bundled NASA FIRMS CSV archive — 12 months of real detections. Fast, works offline.</span>
+    </label>
+    <label class="ds-opt">
+      <input type="radio" name="dsMode" value="live">
+      <b data-i18n="ds_live">Live Mode</b>
+      <span data-i18n="ds_live_desc">NASA FIRMS API — real-time satellite detections (needs an API key).</span>
+    </label>
+    <div id="dsKeyWrap" class="hidden">
+      <label class="f-label" data-i18n="ds_key">FIRMS API Key</label>
+      <input id="dsKey" class="f-input" type="text" autocomplete="off" spellcheck="false" data-i18n-ph="ds_key_ph">
+    </div>
+    <div class="ds-actions">
+      <button class="btn btn-primary" id="dsApply" data-i18n="ds_apply">Apply &amp; Sync</button>
+      <button class="btn btn-ghost" id="dsCancel" data-i18n="ds_cancel">Cancel</button>
+    </div>
+    <div class="ds-note" id="dsNote"></div>
+  </div>
+</div>
+
+<div id="toasts"></div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<script src="js/config.js"></script>
+<script src="js/i18n.js"></script>
+<script src="js/data.js"></script>
+<script src="js/charts.js"></script>
+<script src="js/map.js"></script>
+<script src="js/assistant.js"></script>
+<script src="js/reports.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>

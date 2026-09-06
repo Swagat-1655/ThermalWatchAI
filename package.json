@@ -1,0 +1,10 @@
+{
+  "name": "thermalwatch-ai",
+  "version": "1.0.0",
+  "description": "ThermalWatch AI — AI-powered detection and classification of industrial fires & persistent thermal sources (Team NEON NEXUS)",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "private": true
+}
