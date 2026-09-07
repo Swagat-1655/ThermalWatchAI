@@ -13,6 +13,7 @@
 const https = require('https');
 const fs = require('fs');
 const path = require('path');
+const zlib = require('zlib');
 
 const CONFIG = {
   // Live NASA FIRMS API key. Demo mode (bundled CSV archive) is used when this
@@ -31,6 +32,11 @@ const CONFIG = {
   INDIA_ONLY: process.env.FIRMS_INCLUDE_OUTSIDE !== '1',
   // Bundled demo CSV archive (4 FIRMS NRT products, ~1 year of India detections)
   DEMO_DIR: path.join(__dirname, 'data'),
+  // Precomputed demo archive (parsed + thinned + state-attributed once, so
+  // cold starts on memory-limited hosts like Render never re-parse the 63MB
+  // CSVs). Stored gzipped; gunzipped + expanded at first use (~0.5s).
+  // Regenerate with:  node scripts/build-demo-json.js
+  DEMO_JSON: path.join(__dirname, 'data', 'demo_records.json.gz'),
   // Spatial cell (degrees) used to thin the demo archive: one record per
   // satellite / day / cell, keeping the max-FRP detection (~28 km cell).
   DEMO_CELL: 0.25,
@@ -214,8 +220,33 @@ async function fetchFirmsSource(key, source, bbox, days) {
 // ============================================================
 let demoRecords = null; // cached parsed + thinned + attributed records
 
-function loadDemoRecords() {
+function loadDemoRecords(forceRebuild) {
   if (demoRecords) return demoRecords;
+  // Fast path: the precomputed archive JSON. Building it from the raw CSVs
+  // costs ~63MB of parsing + per-record point-in-polygon attribution on every
+  // cold start — that is what OOM'd the Render instance (502 Bad Gateway) and
+  // made switching to demo feel stuck.
+  if (!forceRebuild && process.env.FIRMS_REBUILD_DEMO !== '1') {
+    // Try the gzipped precomputed archive, then a plain-JSON one, then CSV.
+    for (const file of [CONFIG.DEMO_JSON, CONFIG.DEMO_JSON.replace(/\.gz$/, '')]) {
+      try {
+        let text = fs.readFileSync(file);
+        if (file.endsWith('.gz')) text = zlib.gunzipSync(text);
+        const parsed = JSON.parse(text.toString('utf8'));
+        // Compact columnar format: { h: [fields...], r: [[values...], ...] }
+        if (parsed && Array.isArray(parsed.h) && Array.isArray(parsed.r) && parsed.r.length) {
+          demoRecords = parsed.r.map(row => {
+            const rec = {};
+            for (let i = 0; i < parsed.h.length; i++) rec[parsed.h[i]] = row[i];
+            return rec;
+          });
+          return demoRecords;
+        }
+      } catch (_) {
+        // missing/corrupt — try the next source below
+      }
+    }
+  }
   const files = fs.readdirSync(CONFIG.DEMO_DIR).filter(f => /\.csv$/i.test(f));
   if (!files.length) return [];
   const all = [];
@@ -246,6 +277,28 @@ function loadDemoRecords() {
   return records;
 }
 
+// Serialise a fetchFirms payload for the wire: plain JSON by default, or gzip
+// (cached per cache-fill) when the client accepts it. The 226k-record demo
+// archive drops from ~54MB of JSON to ~5MB over the network.
+function encodeResponse(payload, acceptGzip) {
+  let json;
+  let gzip = null;
+  if (cache && cache.payload === payload) {
+    if (!cache.json) cache.json = JSON.stringify(payload);
+    json = cache.json;
+    if (acceptGzip) {
+      if (!cache.gzip) cache.gzip = zlib.gzipSync(Buffer.from(json));
+      gzip = cache.gzip;
+    }
+  } else {
+    json = JSON.stringify(payload);
+    if (acceptGzip) gzip = zlib.gzipSync(Buffer.from(json));
+  }
+  return gzip
+    ? { body: gzip, headers: { 'Content-Encoding': 'gzip' } }
+    : { body: json, headers: {} };
+}
+
 function demoPayload() {
   const records = loadDemoRecords();
   return {
@@ -272,14 +325,14 @@ async function fetchFirms(days, opts) {
 
   if (mode !== 'live') {
     const p = demoPayload();
-    cache = { at: Date.now(), payload: p, cacheKey };
+    cache = { at: Date.now(), payload: p, json: null, gzip: null, cacheKey };
     return p;
   }
   if (!key) {
     // Live requested but no key anywhere — fall back to demo with a clear reason.
     const p = demoPayload();
     p.error = 'no FIRMS API key — enter one in the Data Source panel or set FIRMS_API_KEY=<key> npm start';
-    cache = { at: Date.now(), payload: p, cacheKey };
+    cache = { at: Date.now(), payload: p, json: null, gzip: null, cacheKey };
     return p;
   }
   try {
@@ -306,15 +359,15 @@ async function fetchFirms(days, opts) {
       count: records.length,
       records,
     };
-    cache = { at: Date.now(), payload, cacheKey };
+    cache = { at: Date.now(), payload, json: null, gzip: null, cacheKey };
     return payload;
   } catch (err) {
     // Live feed failed — fall back to the bundled CSV archive (demo mode).
     const p = demoPayload();
     p.error = String((err && err.message) || err);
-    cache = { at: Date.now(), payload: p, cacheKey };
+    cache = { at: Date.now(), payload: p, json: null, gzip: null, cacheKey };
     return p;
   }
 }
 
-module.exports = { CONFIG, parseFirmsCsv, splitCsvLine, fetchFirms, stateFor, loadIndiaStates, loadDemoRecords };
+module.exports = { CONFIG, parseFirmsCsv, splitCsvLine, fetchFirms, encodeResponse, stateFor, loadIndiaStates, loadDemoRecords };

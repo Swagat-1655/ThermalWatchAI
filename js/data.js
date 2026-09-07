@@ -446,7 +446,7 @@ function buildAlerts(hotspots) {
   });
 }
 
-const DATA = (() => {
+function buildSeedData() {
   const hotspots = buildHotspots();
   const records = buildRecords(hotspots);
   const analytics = buildAnalytics(hotspots, records);
@@ -466,7 +466,9 @@ const DATA = (() => {
       highrisk: hotspots.filter(h => h.severity === 'critical' || h.severity === 'high').length,
     },
   };
-})();
+}
+
+const DATA = buildSeedData();
 
 function hotspotById(id) { return DATA.hotspots.find(h => h.id === id); }
 
@@ -915,6 +917,11 @@ async function initData() {
       count: j.records.length, ms: Date.now() - t0,
     });
   } catch (err) {
+    // Sync failed (server 502, bad key, timeout…) — swap the dataset back to
+    // the honest bundled seeded sample. Keeping the previous live/demo records
+    // here made the badge say "DEMO" while the map/table still showed the old
+    // feed, which looked like demo was identical to live.
+    Object.assign(DATA, buildSeedData());
     Object.assign(DATA_META, {
       live: false, demo: false, mode: (function () { try { return localStorage.getItem('tw_data_mode') || 'demo'; } catch (_) { return 'demo'; } })(),
       reason: String((err && err.message) || err), ms: Date.now() - t0,

@@ -787,9 +787,16 @@ const App = (() => {
         b.classList.toggle('active', b.dataset.lang === CURRENT_LANG);
         b.onclick = () => setLang(b.dataset.lang);
       });
-      // nav
+      // nav — re-running the current view closes the mobile drawer (clicking the
+      // active link otherwise fires no hashchange and leaves the menu open)
       document.querySelectorAll('[data-nav]').forEach(a => {
-        a.addEventListener('click', e => { e.preventDefault(); location.hash = a.dataset.nav; });
+        a.addEventListener('click', e => {
+          e.preventDefault();
+          const id = a.dataset.nav;
+          if (location.hash === '#' + id) showView(id); else location.hash = id;
+          document.getElementById('navLinks').classList.remove('open');
+          document.getElementById('hamburger').classList.remove('open');
+        });
       });
       document.getElementById('hamburger').onclick = () => {
         document.getElementById('navLinks').classList.toggle('open');

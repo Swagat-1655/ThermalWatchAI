@@ -820,17 +820,54 @@ html[data-theme="dark"] select option {
   .map-wrap { min-height: 440px; }
 }
 @media (max-width: 768px) {
-  .kpi-grid { grid-template-columns: repeat(2, 1fr); }
-  .hero-stats { grid-template-columns: repeat(3, 1fr); }
-  .an-grid { grid-template-columns: repeat(2, 1fr); }
-  .dt-cards { grid-template-columns: repeat(2, 1fr); }
-  .nav-links a { font-size: 0.82rem; padding: 10px 11px; }
-  .map-toolbar { gap: 8px; }
-  .tb-left h2 { font-size: 1.15rem; }
+  /* ---------- mobile interactivity ---------- */
+  * { -webkit-tap-highlight-color: transparent; }
+  .view { padding: calc(var(--nav-h) + 14px) 4% 48px; }
+  .nav-inner { gap: 8px; }
+  .brand-text { font-size: 0.98rem; }
+  .clock { display: none; }
+  .hamburger { padding: 10px; }
+  .hamburger span { width: 24px; height: 2.5px; }
+  /* drawer: full-width sheet with touch-sized links */
+  .nav-links { top: var(--nav-h); padding: 8px 14px 18px; max-height: calc(100vh - var(--nav-h)); overflow-y: auto; }
+  .nav-links a { min-height: 46px; display: flex; align-items: center; font-size: 0.92rem; padding: 0 14px; }
+  .nav-links a:active { background: rgba(34, 211, 238, 0.16); }
+  .data-badge { max-width: 44vw; }
+  #dataBadgeText { max-width: 86px; }
+  /* maps + risk */
+  .map-wrap { height: 62vh; min-height: 380px; }
+  #riskMap { height: 56vh; min-height: 320px; }
+  .risk-state-card { max-height: 44vh; }
+  .map-toolbar { gap: 10px; }
+  .tb-left h2 { font-size: 1.08rem; }
   .map-legend { font-size: 0.68rem; padding: 8px 10px; }
   .map-legend .lg-row { gap: 5px; }
-  .data-badge { font-size: 0.62rem; padding: 5px 9px; }
-  #dataBadgeText { max-width: 90px; }
+  .map-coords { bottom: 8px; left: 8px; font-size: 0.6rem; }
+  /* cards / touch targets */
+  .stat-card { padding: 14px 12px; }
+  .stat-val { font-size: 1.55rem; }
+  .kpi { padding: 14px 12px; }
+  .kpi-val { font-size: 1.5rem; }
+  .kpi-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+  .hero-stats { grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  .an-grid { grid-template-columns: repeat(2, 1fr); }
+  .dt-cards { grid-template-columns: repeat(2, 1fr); }
+  .btn { min-height: 44px; }
+  .btn:active { transform: scale(0.97); }
+  .icon-btn { width: 42px; height: 42px; }
+  .seg { flex-wrap: wrap; }
+  .seg-btn { min-height: 40px; padding: 8px 12px; }
+  .chat-card { min-height: 460px; }
+  .chat-input textarea { min-height: 56px; }
+  .feed-item { padding: 11px 12px; }
+  .alert-card { padding: 12px; }
+  .alert-ack { min-width: 54px; min-height: 40px; }
+  .table-wrap { max-height: 420px; }
+  .dt-table th, .dt-table td { padding: 8px 10px; }
+  .modal { max-width: 94vw; padding: 16px; }
+  .ds-opt { padding: 12px; }
+  .spot-drawer { width: 100%; border-radius: 16px 16px 0 0; max-height: 80vh; }
+  .state-district, .reason-item { padding: 9px 0; }
 }
 @media (max-width: 720px) {
   .seg { flex-wrap: wrap; max-width: 100%; }

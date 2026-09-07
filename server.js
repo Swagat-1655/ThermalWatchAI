@@ -117,8 +117,15 @@ const server = http.createServer((req, res) => {
       // enters one in the Data Source panel; env key is used otherwise.
       key: req.headers['x-firms-key'] || undefined,
     }).then(payload => {
-      res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-cache' });
-      res.end(JSON.stringify(payload));
+      // gzip the payload when the client accepts it — the demo archive is
+      // ~16MB of JSON and compresses to ~2-3MB (much faster syncs).
+      const enc = firms.encodeResponse(payload, /gzip/i.test(req.headers['accept-encoding'] || ''));
+      res.writeHead(200, {
+        'Content-Type': 'application/json; charset=utf-8',
+        'Cache-Control': 'no-cache',
+        ...enc.headers,
+      });
+      res.end(enc.body);
     }).catch(err => {
       res.writeHead(502, { 'Content-Type': 'application/json; charset=utf-8' });
       res.end(JSON.stringify({ live: false, demo: false, error: err.message || String(err) }));
