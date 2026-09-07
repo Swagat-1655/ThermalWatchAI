@@ -1,8 +1,19 @@
+<div align="center">
+
 # 🔥 ThermalWatch AI
 
-**AI-Powered Detection, Classification, Prediction & Monitoring of Industrial Fires and Persistent Thermal Sources using Satellite Intelligence.**
+**AI-powered detection, classification, prediction and monitoring of industrial fires and persistent thermal sources — over India, from satellite.**
 
-A government-grade thermal intelligence platform for India, built as a bilingual (English 🇬🇧 / Hindi 🇮🇳) web application with a Palantir / NASA Mission Control / ArcGIS-inspired design language — built by Team NEON NEXUS.
+A government-grade thermal intelligence platform, bilingual (English 🇬🇧 / Hindi 🇮🇳), styled after Palantir / NASA Mission Control / ArcGIS.
+Built by **Team NEON NEXUS**.
+
+![status](https://img.shields.io/badge/status-active-4fd07a?style=flat-square)
+![data](https://img.shields.io/badge/data-NASA%20FIRMS-ff6a2b?style=flat-square)
+![satellites](https://img.shields.io/badge/satellites-MODIS%20%2B%20VIIRS-37d0d8?style=flat-square)
+![stack](https://img.shields.io/badge/stack-Node%20%C2%B7%20Leaflet%20%C2%B7%20Chart.js-8b7ff0?style=flat-square)
+![license](https://img.shields.io/badge/made%20for-Bharat%20%F0%9F%87%AE%F0%9F%87%B3-e8a13a?style=flat-square)
+
+</div>
 
 ---
 
@@ -13,19 +24,63 @@ npm start          # or: node server.js
 # open http://localhost:8080
 ```
 
-### 🛰️ Data source: demo archive vs live NASA FIRMS API
+No build step, no dependencies to install for the frontend — it's a static SPA served by a tiny Node server (`server.js` + `firms.js` proxy). CDN libraries (Leaflet, Chart.js, jsPDF, docx) load in the browser.
+
+---
+
+## 🛰️ Data source: demo archive vs live NASA FIRMS API
+
+```mermaid
+flowchart LR
+    A[NASA FIRMS API] -->|MAP_KEY set| B(("firms.js proxy"))
+    C[Bundled CSV archive<br/>data/*.csv, 12 months] -->|no key| B
+    B --> D[Normalise MODIS + VIIRS<br/>schema, dedupe, cache 5min]
+    D --> E[State attribution<br/>point-in-polygon]
+    E --> F{Match plant<br/>within 35km?}
+    F -->|yes| G[Known site]
+    F -->|no| H[Unclassified]
+    G --> I[js/data.js DATA object]
+    H --> I
+    I --> J[Dashboard · Map · Analytics<br/>Alerts · Reports · Dataset]
+
+    style A fill:#ff6a2b,color:#fff,stroke:none
+    style C fill:#e8a13a,color:#fff,stroke:none
+    style B fill:#0e1a26,color:#37d0d8,stroke:#37d0d8
+    style I fill:#0e1a26,color:#4fd07a,stroke:#4fd07a
+```
 
 **Demo mode (default, no key needed).** The app ships with a bundled **NASA FIRMS CSV archive** — four NRT products (MODIS Terra/Aqua + VIIRS S-NPP/NOAA-20/NOAA-21, `data/*.csv`) covering ~12 months of real detections over India. The map, dashboard, analytics, alerts and dataset explorer are all fed by these records (the live map shows the most recent 30 days; analytics & the dataset explorer span the full year). The navbar shows an amber **FIRMS DEMO** badge.
 
-**Live mode (online).** Click the data badge in the navbar, choose **Live Mode**, paste your NASA MAP_KEY and hit **Apply & Sync** — the app fetches fresh detections from the FIRMS API (last 5 days, cached 5 minutes server-side) and hot-swaps them in without a page reload. You can also start the server with `FIRMS_API_KEY=your_key_here npm start` (or set it in `.env` — see `.env.example`), which always wins for live mode. Get a free key at <https://firms.modaps.eosdis.nasa.gov/api/map_key/>.
+**Live mode (online).** Click the data badge in the navbar, choose **Live Mode**, paste your NASA MAP_KEY and hit **Apply & Sync** — the app fetches fresh detections from the FIRMS API (last 5 days, cached 5 minutes server-side) and hot-swaps them in without a page reload. You can also start the server with `FIRMS_API_KEY=your_key_here npm start` (or set it in `.env` — see `.env.example`), which always wins for live mode. Get a free key at [firms.modaps.eosdis.nasa.gov/api/map_key](https://firms.modaps.eosdis.nasa.gov/api/map_key/).
 
 The green **LIVE FIRMS** badge confirms the live feed is active. If the API fails (network, rate limit, revoked key) it falls back to the bundled CSV archive. The UI paints instantly (bundled sample) and syncs the chosen data source in the background, so live-mode latency never blocks the page.
 
 Optional env vars: `FIRMS_BBOX` (default `67.0,6.0,98.5,37.5`), `FIRMS_SOURCES` (default all four NRT products), `FIRMS_DAYS` (1–5), `FIRMS_INCLUDE_OUTSIDE=1` (keep detections from neighbouring countries inside the bbox), `PORT`.
 
-No build step, no dependencies. The app is a static SPA served by a tiny Node server (`server.js` + `firms.js` proxy). CDN libraries (Leaflet, Chart.js, jsPDF, docx) load from the browser.
+### Satellite products in the feed
+
+```mermaid
+pie showData
+    title NRT products powering the feed (equal weight)
+    "MODIS Terra" : 1
+    "MODIS Aqua" : 1
+    "VIIRS S-NPP" : 1
+    "VIIRS NOAA-20" : 1
+    "VIIRS NOAA-21" : 1
+```
+
+---
 
 ## 🧠 What's inside
+
+```mermaid
+xychart-beta
+    title "Feature count by module"
+    x-axis ["Landing","Dashboard","Map","Drawer","Twin","Risk Map","Analytics","Assistant","Alerts","Reports","Dataset"]
+    y-axis "Features" 0 --> 8
+    bar [4,4,4,7,4,3,5,3,3,2,4]
+```
+> If your Markdown viewer doesn't render `xychart-beta` (older Mermaid), see the table below — GitHub.com renders it natively.
 
 | Module | Highlights |
 |---|---|
@@ -40,6 +95,8 @@ No build step, no dependencies. The app is a static SPA served by a tiny Node se
 | **Alerts** | Real-time alert feed (new fire, anomaly, explosion, spread, environment), severity filters, Dashboard/Email/SMS channel toggles |
 | **Reports** | One-click **PDF** (jsPDF) and **DOCX** (docx.js) incident dossiers with live preview |
 | **Dataset** | NASA FIRMS-schema explorer — all live detections (thousands), search, filter, sort, paginate, CSV export |
+
+---
 
 ## 🛰️ Data
 
@@ -63,15 +120,45 @@ All records follow the NASA FIRMS (MODIS / VIIRS) schema: `latitude, longitude, 
 - `js/data.js` `initData()` runs at boot: success replaces `DATA` with the pipeline (live or demo); any failure (no key, network, server 502, zero records) **resets `DATA` to the bundled seeded sample** and flags `DATA_META.live = false`, which drives the navbar badge and analytics note — the UI never shows stale records from the previous data source.
 - Derived numbers are honest: in live and CSV-demo modes no KPI offsets are added, no fake alerts are injected, and the seasonal chart smoothing is skipped.
 
+---
+
 ## 🤖 LLM
 
 - Model: `openai/gpt-oss-20b` via Groq. The key is **server-side only** — set `GROQ_API_KEY` in `.env` (copy `.env.example` → `.env`) and calls are proxied through `/api/ai/chat`; the browser never sees the key. Without it the assistant falls back to the offline rule-based replies.
 - Pipeline: NER-style query parsing → PostGIS-style spatial filtering → RAG context retrieval → LLM synthesis.
 
-## 🏗️ Tech
+```mermaid
+flowchart LR
+    Q[User query] --> N[NER-style parsing]
+    N --> S[Spatial filtering<br/>PostGIS-style]
+    S --> R[RAG context retrieval<br/>over FIRMS graph]
+    R --> L[LLM synthesis<br/>gpt-oss-20b via Groq]
+    L --> O[Map / chart / list response]
+    R -.no key.-> F[Offline rule-based fallback]
+    F --> O
 
-NASA FIRMS · OpenStreetMap / ESRI · Sentinel-2 · PostGIS · FastAPI · XGBoost · Vision Transformers · Leaflet · GeoServer · Chart.js · jsPDF · docx.js
+    style Q fill:#0e1a26,color:#dbe4ea,stroke:#2a4256
+    style L fill:#ff6a2b,color:#fff,stroke:none
+    style F fill:#0e1a26,color:#e8a13a,stroke:#e8a13a
+```
 
 ---
 
+## 🏗️ Tech stack
+
+**Data & geospatial**
+`NASA FIRMS` `Sentinel-2` `PostGIS` `GeoServer` `OpenStreetMap / ESRI`
+
+**Modeling**
+`FastAPI` `XGBoost` `Vision Transformers`
+
+**Frontend & reporting**
+`Leaflet` `Chart.js` `jsPDF` `docx.js`
+
+---
+
+<div align="center">
+
 © 2026 ThermalWatch AI · Team NEON NEXUS · Made for Bharat 🇮🇳
+
+</div>
