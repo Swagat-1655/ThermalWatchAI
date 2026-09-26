@@ -893,16 +893,107 @@ html[data-theme="dark"] select option {
   .modal { padding: 18px; }
 }
 @media (max-width: 600px) {
-  .lang-switch, .profile { display: none; }
-  .nav-inner { gap: 10px; }
-  .brand-text { font-size: 0.95rem; }
-  #dataBadgeText { display: inline-block; vertical-align: middle; max-width: 108px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .tb-right { flex-direction: column; align-items: stretch; }
-  .tb-right .seg { justify-content: space-between; }
-  .tb-right .mini-select { width: 100%; }
-  .hero-actions .btn { flex: 1; justify-content: center; }
-  .chat-input { flex-direction: column; }
-  .chat-input .btn { width: 100%; justify-content: center; }
-  .foot-bottom { flex-direction: column; align-items: flex-start; gap: 4px; }
-  .modal-overlay { padding: 10px; }
+
+    .nav-inner {
+        gap: 6px;
+        width: 100%;
+        padding: 0 10px;
+    }
+
+    .brand {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .brand-text {
+        font-size: 0.92rem;
+        white-space: nowrap;
+    }
+
+    .nav-actions {
+        gap: 5px;
+        flex-shrink: 0;
+    }
+
+    /* KEEP HAMBURGER VISIBLE */
+    .hamburger {
+        display: flex !important;
+        width: 42px;
+        height: 42px;
+        padding: 8px;
+        flex-shrink: 0;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .hamburger span {
+        width: 23px;
+        height: 2.5px;
+    }
+
+    /* FIRMS badge */
+    .data-badge {
+        max-width: 115px;
+        min-width: 0;
+        flex-shrink: 1;
+    }
+
+    #dataBadgeText {
+        display: inline-block;
+        vertical-align: middle;
+        max-width: 75px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    /* Theme button */
+    .icon-btn {
+        width: 40px;
+        height: 40px;
+        flex-shrink: 0;
+    }
+
+    /* Keep header clean on small screens */
+    .lang-switch,
+    .profile {
+        display: none;
+    }
+
+    .tb-right {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .tb-right .seg {
+        justify-content: space-between;
+    }
+
+    .tb-right .mini-select {
+        width: 100%;
+    }
+
+    .hero-actions .btn {
+        flex: 1;
+        justify-content: center;
+    }
+
+    .chat-input {
+        flex-direction: column;
+    }
+
+    .chat-input .btn {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .foot-bottom {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 4px;
+    }
+
+    .modal-overlay {
+        padding: 10px;
+    }
 }
